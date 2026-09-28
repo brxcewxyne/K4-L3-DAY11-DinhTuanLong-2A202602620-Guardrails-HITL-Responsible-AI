@@ -62,8 +62,14 @@ class OpenAIRunner:
             return block_msg
 
         client = self._client()
+        request_model = self.model
+        # OpenRouter currently exposes the locked Blue model through its free
+        # route alias. Keep the configured/model label unchanged while sending
+        # the routable variant to the API.
+        if self.provider == "openrouter" and request_model == get_blue_model():
+            request_model = f"{request_model}:free"
         completion = client.chat.completions.create(
-            model=self.model,
+            model=request_model,
             messages=[
                 {"role": "system", "content": agent.instruction},
                 {"role": "user", "content": user_message},
